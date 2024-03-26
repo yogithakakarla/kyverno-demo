@@ -1,0 +1,28 @@
+#The validationFailureAction set to Enforce in the ClusterPolicy specifies that the policy should enforce compliance by rejecting resources that violate the policy. In this case, the policy named dev-deployment-replica-check is configured to enforce that the replica count of Deployment resources with the label env: dev must be 1.
+
+#If a Deployment resource is created or updated with a replica count different from 1 and with the env label set to dev, the policy will trigger a validation failure. Since the validationFailureAction is set to Enforce, the policy will reject the creation or update of such deployments. It won't automatically update the replica count to 1
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: dev-deployment-replica-check
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: check-for-dev-deployment-replica
+    match:
+      any:
+      - resources:
+          kinds:
+          - Deployment
+    preconditions:
+      any:
+      - key: "{{ request.object.metadata.labels.env }}"
+        operator: Equals
+        value: dev
+    validate:
+      message: "The replica count needs to be 1"
+      pattern:
+        spec:
+          replicas: 1
