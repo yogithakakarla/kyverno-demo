@@ -1,0 +1,27 @@
+#patchStrategicMerge: Contains a strategic merge patch to apply to the resource.
+
+#metadata: Specifies changes to the metadata of the resource.
+
+#annotations: Specifies changes to the annotations of the resource's metadata.
+
+# +(corp.org/source): Adds an annotation with the key corp.org/source and value Helm Chart to the resource's annotations.
+
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: helm-pods-require-annotations
+spec:
+  rules:
+  - name: check-for-helm-pod-annotation
+    match:
+      all:
+      - resources:
+          kinds:
+          - Pod
+          names:
+          - "helm*"
+    mutate:
+      patchStrategicMerge:
+        metadata:
+          annotations:
+            +(corp.org/source): Helm Chart
